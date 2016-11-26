@@ -117,7 +117,15 @@ sub recv {
 
     $self->trace("Reading XML response from Netconf server...");
     my ($resp, $buf);
-    do {
+    $self->{buffer} = '' unless defined $self->{buffer};
+    while ('necessary') {
+
+        # Take whatever might already be present in the buffer first
+        if ($self->{buffer} =~ m{\A (.*?) \Q]]>]]>\E}mxs) {
+            $resp = $1;
+            last;
+        }
+
         # Wait up to 10 seconds for data to become available before attempting
         # to read anything (in order to avoid busy-looping on $chan->read())
         my @poll = ({ handle => $chan, events => 'in' });
@@ -125,8 +133,8 @@ sub recv {
 
         $nbytes = $chan->read($buf, 65536) || 0;
         $self->trace("Read $nbytes bytes from SSH channel: '$buf'");
-        $resp .= $buf;
-    } until($resp =~ s/]]>]]>$//);
+        $self->{buffer} .= $buf;
+    }
     $self->trace("Received XML response '$resp'");
 
     return $resp;
