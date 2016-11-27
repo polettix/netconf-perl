@@ -121,7 +121,7 @@ sub recv {
     while ('necessary') {
 
         # Take whatever might already be present in the buffer first
-        if ($self->{buffer} =~ m{\A (.*?) \Q]]>]]>\E}mxs) {
+        if ($self->{buffer} =~ s{\A (.*?) \Q]]>]]>\E}{}mxs) {
             $resp = $1;
             last;
         }
